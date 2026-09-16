@@ -1,0 +1,28 @@
+{
+    // Disables VS Code's built-in CSS validation entirely. This is
+    // the fix Tailwind's own documentation recommends for exactly
+    // this problem: the built-in linter doesn't understand v4's
+    // syntax (@custom-variant, @theme, @apply, @utility, etc.) and
+    // will keep flagging valid Tailwind CSS as errors no matter how
+    // it's configured otherwise. Losing generic CSS validation
+    // (e.g. unclosed braces) is an acceptable trade-off here — the
+    // official "Tailwind CSS IntelliSense" extension, if installed,
+    // provides its own more accurate validation anyway.
+    "css.validate": false,
+    "scss.validate": false,
+    "less.validate": false,
+
+    // Kept as a second layer in case css.validate is ever
+    // re-enabled: properly teaches the built-in CSS language
+    // service about Tailwind v4's at-rules via
+    // tailwind.css-data.json in this same folder.
+    "css.customData": [
+        "./.vscode/tailwind.css-data.json"
+    ],
+
+    // Also kept for the same reason — harmless if css.validate
+    // above is doing the heavy lifting.
+    "css.lint.propertyIgnoredDueToDisplay": "ignore",
+    "scss.lint.propertyIgnoredDueToDisplay": "ignore",
+    "less.lint.propertyIgnoredDueToDisplay": "ignore"
+}

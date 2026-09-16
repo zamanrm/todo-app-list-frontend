@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Use a manual .dark class on <html> to control dark mode,
+   instead of only following the OS-level color-scheme setting,
+   so the in-app toggle button actually works. */
+@custom-variant dark (&:where(.dark, .dark *));

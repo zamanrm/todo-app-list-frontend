@@ -1,0 +1,45 @@
+{
+    "version": 1.1,
+    "atDirectives": [
+        {
+            "name": "@tailwind",
+            "description": "Injects Tailwind's base, components, utilities, or variants styles into your CSS. (Tailwind CSS at-rule.)"
+        },
+        {
+            "name": "@apply",
+            "description": "Inlines existing Tailwind utility classes into a custom CSS rule. (Tailwind CSS at-rule.)"
+        },
+        {
+            "name": "@layer",
+            "description": "Tells Tailwind which 'bucket' (base, components, utilities) a set of custom styles belongs to, controlling cascade order. (Tailwind CSS at-rule.)"
+        },
+        {
+            "name": "@config",
+            "description": "Specifies which Tailwind config file to use in this CSS file. (Tailwind CSS v4 at-rule.)"
+        },
+        {
+            "name": "@theme",
+            "description": "Defines design tokens (colors, fonts, spacing, etc.) as CSS custom properties, replacing the old tailwind.config.js theme object. (Tailwind CSS v4 at-rule.)"
+        },
+        {
+            "name": "@custom-variant",
+            "description": "Defines a new custom variant (e.g. a manually-toggled 'dark' class selector) that utilities can then use, such as dark:bg-black. (Tailwind CSS v4 at-rule.)"
+        },
+        {
+            "name": "@utility",
+            "description": "Defines a custom utility class that participates in Tailwind's variant system (hover:, dark:, etc. all work on it automatically). (Tailwind CSS v4 at-rule.)"
+        },
+        {
+            "name": "@variant",
+            "description": "Applies a Tailwind variant (e.g. hover, dark) to a block of raw CSS inside a rule. (Tailwind CSS v4 at-rule.)"
+        },
+        {
+            "name": "@source",
+            "description": "Explicitly adds a file or directory to Tailwind's list of sources to scan for class names, in addition to automatic detection. (Tailwind CSS v4 at-rule.)"
+        },
+        {
+            "name": "@plugin",
+            "description": "Loads a Tailwind plugin directly from CSS. (Tailwind CSS v4 at-rule.)"
+        }
+    ]
+}
