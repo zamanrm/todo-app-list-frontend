@@ -62,6 +62,16 @@ const helpBtn = document.getElementById("helpBtn");
 const helpModal = document.getElementById("helpModal");
 const closeHelpBtn = document.getElementById("closeHelpBtn");
 
+// Save & Share link
+const saveLinkBtn = document.getElementById("saveLinkBtn");
+const saveLinkModal = document.getElementById("saveLinkModal");
+const saveLinkOutput = document.getElementById("saveLinkOutput");
+const copyLinkBtn = document.getElementById("copyLinkBtn");
+const copyLinkBtnLabel = document.getElementById("copyLinkBtnLabel");
+const closeSaveLinkBtn = document.getElementById("closeSaveLinkBtn");
+const sharedLinkStatusModal = document.getElementById("sharedLinkStatusModal");
+const closeSharedLinkStatusBtn = document.getElementById("closeSharedLinkStatusBtn");
+
 
 // ========================================
 // APPLICATION STATE
@@ -1979,6 +1989,370 @@ scrollToTopBtn.addEventListener(
 // scrolled down (e.g. after a browser "restore scroll position"
 // on refresh).
 updateScrollToTopVisibility();
+
+
+// ========================================
+// SAVE & SHARE LINK
+// ========================================
+//
+// IMPORTANT SCOPE NOTE: this is a same-browser, same-device
+// feature. It works by saving a snapshot of the current tasks
+// into this browser's own localStorage under a short random ID,
+// then building a URL like "...index.html?share=AB12CD" that
+// re-loads that snapshot when opened. There is no server and no
+// real database — a link copied and opened on a different
+// device or in a different browser will NOT find the saved data,
+// because localStorage never leaves the browser it was written
+// in. Snapshots expire 24 hours after saving.
+
+const SHARE_STORAGE_PREFIX = "todoShare:";
+
+const SHARE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+const SHARE_ID_LENGTH = 6;
+
+const SHARE_ID_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I to avoid ambiguity
+
+
+function generateShareId() {
+
+    let id = "";
+
+    for (let i = 0; i < SHARE_ID_LENGTH; i++) {
+
+        id += SHARE_ID_CHARS[Math.floor(Math.random() * SHARE_ID_CHARS.length)];
+
+    }
+
+    return id;
+
+}
+
+
+// Removes any saved snapshots whose 24-hour window has already
+// passed, so localStorage doesn't quietly accumulate old entries
+// forever. Run once on page load.
+function cleanupExpiredShares() {
+
+    try {
+
+        const now = Date.now();
+
+        Object.keys(localStorage)
+            .filter(key => key.startsWith(SHARE_STORAGE_PREFIX))
+            .forEach(key => {
+
+                try {
+
+                    const entry = JSON.parse(localStorage.getItem(key));
+
+                    if (!entry || typeof entry.expiresAt !== "number" || entry.expiresAt < now) {
+
+                        localStorage.removeItem(key);
+
+                    }
+
+                } catch (error) {
+
+                    // Corrupted entry — remove it rather than leave
+                    // something unparseable sitting in storage.
+                    localStorage.removeItem(key);
+
+                }
+
+            });
+
+    } catch (error) {
+
+        // localStorage may be unavailable (e.g. private browsing
+        // in some browsers) — fail silently, this is a best-effort
+        // cleanup, not a critical operation.
+        console.warn("Could not clean up saved links:", error);
+
+    }
+
+}
+
+
+// Saves a snapshot of the current tasks under a new short ID and
+// returns the full shareable URL, or null if it couldn't be
+// saved (e.g. localStorage unavailable or full).
+function saveSnapshotAndGetLink() {
+
+    const id = generateShareId();
+
+    const entry = {
+
+        tasks: tasks,
+
+        expiresAt: Date.now() + SHARE_EXPIRY_MS
+
+    };
+
+
+    try {
+
+        localStorage.setItem(
+            SHARE_STORAGE_PREFIX + id,
+            JSON.stringify(entry)
+        );
+
+    } catch (error) {
+
+        console.error("Could not save snapshot:", error);
+
+        return null;
+
+    }
+
+
+    const url = new URL(window.location.href);
+
+    url.hash = "";
+
+    url.searchParams.set("share", id);
+
+    return url.toString();
+
+}
+
+
+// Checks the current URL for a ?share=ID param on page load. If
+// found and the snapshot hasn't expired, loads those tasks into
+// the app. If found but expired/missing, shows an explanatory
+// modal instead of silently doing nothing.
+function loadSharedSnapshotFromUrl() {
+
+    const params = new URLSearchParams(window.location.search);
+
+    const sharedId = params.get("share");
+
+    if (!sharedId) {
+
+        return;
+
+    }
+
+
+    let entry = null;
+
+    try {
+
+        const raw = localStorage.getItem(SHARE_STORAGE_PREFIX + sharedId);
+
+        entry = raw ? JSON.parse(raw) : null;
+
+    } catch (error) {
+
+        entry = null;
+
+    }
+
+
+    const isValid =
+        entry &&
+        Array.isArray(entry.tasks) &&
+        typeof entry.expiresAt === "number" &&
+        entry.expiresAt >= Date.now();
+
+
+    if (isValid) {
+
+        tasks = entry.tasks;
+
+        renderTasks();
+
+    } else {
+
+        openSharedLinkStatusModal();
+
+    }
+
+}
+
+
+function openSaveLinkModal(url) {
+
+    saveLinkOutput.value = url;
+
+    copyLinkBtnLabel.textContent = "Copy";
+
+    saveLinkModal.classList.remove("hidden");
+
+    if (typeof saveLinkModal.showModal === "function") {
+
+        saveLinkModal.showModal();
+
+    }
+
+}
+
+
+function closeSaveLinkModal() {
+
+    saveLinkModal.classList.add("hidden");
+
+    if (typeof saveLinkModal.close === "function" && saveLinkModal.open) {
+
+        saveLinkModal.close();
+
+    }
+
+}
+
+
+function openSharedLinkStatusModal() {
+
+    sharedLinkStatusModal.classList.remove("hidden");
+
+    if (typeof sharedLinkStatusModal.showModal === "function") {
+
+        sharedLinkStatusModal.showModal();
+
+    }
+
+}
+
+
+function closeSharedLinkStatusModal() {
+
+    sharedLinkStatusModal.classList.add("hidden");
+
+    if (typeof sharedLinkStatusModal.close === "function" && sharedLinkStatusModal.open) {
+
+        sharedLinkStatusModal.close();
+
+    }
+
+
+    // Clear the invalid ?share=... param so refreshing the page
+    // doesn't immediately show this same modal again.
+    const url = new URL(window.location.href);
+
+    url.searchParams.delete("share");
+
+    window.history.replaceState({}, "", url.toString());
+
+}
+
+
+saveLinkBtn.addEventListener(
+    "click",
+    () => {
+
+        const url = saveSnapshotAndGetLink();
+
+        if (url) {
+
+            openSaveLinkModal(url);
+
+        } else {
+
+            alert("Sorry, this browser couldn't save a link right now.");
+
+        }
+
+    }
+);
+
+
+copyLinkBtn.addEventListener(
+    "click",
+    async () => {
+
+        try {
+
+            await navigator.clipboard.writeText(saveLinkOutput.value);
+
+            copyLinkBtnLabel.textContent = "Copied!";
+
+        } catch (error) {
+
+            // Clipboard API can fail (older browsers, insecure
+            // context, permissions). Fall back to a manual
+            // select-the-text approach so the user can still
+            // copy it themselves with Ctrl+C / Cmd+C.
+            saveLinkOutput.select();
+
+            copyLinkBtnLabel.textContent = "Press Ctrl+C";
+
+        }
+
+
+        setTimeout(() => {
+
+            copyLinkBtnLabel.textContent = "Copy";
+
+        }, 2000);
+
+    }
+);
+
+
+closeSaveLinkBtn.addEventListener(
+    "click",
+    closeSaveLinkModal
+);
+
+
+saveLinkModal.addEventListener(
+    "click",
+    (event) => {
+
+        if (event.target === saveLinkModal) {
+
+            closeSaveLinkModal();
+
+        }
+
+    }
+);
+
+
+saveLinkModal.addEventListener(
+    "close",
+    () => {
+
+        saveLinkModal.classList.add("hidden");
+
+    }
+);
+
+
+closeSharedLinkStatusBtn.addEventListener(
+    "click",
+    closeSharedLinkStatusModal
+);
+
+
+sharedLinkStatusModal.addEventListener(
+    "click",
+    (event) => {
+
+        if (event.target === sharedLinkStatusModal) {
+
+            closeSharedLinkStatusModal();
+
+        }
+
+    }
+);
+
+
+sharedLinkStatusModal.addEventListener(
+    "close",
+    () => {
+
+        sharedLinkStatusModal.classList.add("hidden");
+
+    }
+);
+
+
+// Run cleanup and check for an incoming shared link once, on load.
+cleanupExpiredShares();
+
+loadSharedSnapshotFromUrl();
 
 
 // ========================================
