@@ -57,6 +57,11 @@ const logoBtn = document.getElementById("logoBtn");
 // Scroll to top
 const scrollToTopBtn = document.getElementById("scrollToTopBtn");
 
+// Help modal
+const helpBtn = document.getElementById("helpBtn");
+const helpModal = document.getElementById("helpModal");
+const closeHelpBtn = document.getElementById("closeHelpBtn");
+
 
 // ========================================
 // APPLICATION STATE
@@ -1864,6 +1869,75 @@ selectAllBtn.addEventListener(
 clearSelectionBtn.addEventListener(
     "click",
     clearTaskSelection
+);
+
+
+// ========================================
+// HELP MODAL
+// ========================================
+
+function openHelpModal() {
+
+    helpModal.classList.remove("hidden");
+
+    if (typeof helpModal.showModal === "function") {
+
+        helpModal.showModal();
+
+    }
+
+}
+
+
+function closeHelpModal() {
+
+    helpModal.classList.add("hidden");
+
+    if (typeof helpModal.close === "function" && helpModal.open) {
+
+        helpModal.close();
+
+    }
+
+}
+
+
+helpBtn.addEventListener(
+    "click",
+    openHelpModal
+);
+
+
+closeHelpBtn.addEventListener(
+    "click",
+    closeHelpModal
+);
+
+
+// Click outside the modal content (on the backdrop) closes it,
+// same pattern as the other dialogs in the app.
+helpModal.addEventListener(
+    "click",
+    (event) => {
+
+        if (event.target === helpModal) {
+
+            closeHelpModal();
+
+        }
+
+    }
+);
+
+
+// Native dialog close (e.g. Escape key handled by the browser)
+helpModal.addEventListener(
+    "close",
+    () => {
+
+        helpModal.classList.add("hidden");
+
+    }
 );
 
 
