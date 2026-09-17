@@ -54,6 +54,9 @@ const themeIconMoon = document.getElementById("themeIconMoon");
 // Logo
 const logoBtn = document.getElementById("logoBtn");
 
+// Scroll to top
+const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+
 
 // ========================================
 // APPLICATION STATE
@@ -1862,6 +1865,46 @@ clearSelectionBtn.addEventListener(
     "click",
     clearTaskSelection
 );
+
+
+// ========================================
+// SCROLL TO TOP BUTTON
+// ========================================
+
+const SCROLL_REVEAL_THRESHOLD = 300; // pixels scrolled before the button appears
+
+
+function updateScrollToTopVisibility() {
+
+    const shouldShow = window.scrollY > SCROLL_REVEAL_THRESHOLD;
+
+    scrollToTopBtn.style.opacity = shouldShow ? "1" : "0";
+
+    scrollToTopBtn.style.pointerEvents = shouldShow ? "auto" : "none";
+
+}
+
+
+// Passive listener: this only reads scroll position, never
+// calls preventDefault(), so marking it passive lets the browser
+// optimize scroll performance.
+window.addEventListener("scroll", updateScrollToTopVisibility, { passive: true });
+
+
+scrollToTopBtn.addEventListener(
+    "click",
+    () => {
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+    }
+);
+
+
+// Set the correct initial state in case the page loads already
+// scrolled down (e.g. after a browser "restore scroll position"
+// on refresh).
+updateScrollToTopVisibility();
 
 
 // ========================================
