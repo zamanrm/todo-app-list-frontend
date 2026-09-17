@@ -7,6 +7,7 @@ My To-Do List demonstrates the core functionality of a task manager, including a
 ## 🚀 Features
 
 * 📝 Add tasks with a description, required due date, and optional notes
+* 📜 Automatically scrolls to newly added tasks so they're immediately visible
 * ✏️ Edit existing tasks (text, date, and notes)
 * ✅ Mark tasks complete/active via checkbox
 * 🗑️ Delete tasks with a confirmation modal
@@ -111,6 +112,7 @@ When the user submits the add-task form:
 2. A new task object is created and added to the list.
 3. The form inputs are cleared.
 4. The task list and counter are refreshed.
+5. The view automatically scrolls down to the newly added task, so it's immediately visible without manual scrolling.
 
 ### Edit Task
 

@@ -168,8 +168,37 @@ function addTask() {
     updateExportButtonState();
 
 
-    // Focus input for next task
-    taskInput.focus();
+    // Scroll the newly added task into view. It's found via its
+    // completion checkbox's id (task-checkbox-<id>), then we walk
+    // up to the containing <li> card. If the new task isn't
+    // visible under the current filter (e.g. viewing "Completed"
+    // right after adding an active task), this simply does
+    // nothing rather than erroring.
+    const newTaskCheckbox = document.getElementById(`task-checkbox-${newTask.id}`);
+
+    if (newTaskCheckbox) {
+
+        const newTaskCard = newTaskCheckbox.closest("li");
+
+        if (newTaskCard) {
+
+            newTaskCard.scrollIntoView({
+
+                behavior: "smooth",
+
+                block: "end"
+
+            });
+
+        }
+
+    }
+
+
+    // Focus input for next task. { preventScroll: true } stops
+    // the browser from jumping the view back up to the form,
+    // which would otherwise undo the scroll-to-bottom above.
+    taskInput.focus({ preventScroll: true });
 
 }
 
